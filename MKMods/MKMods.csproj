@@ -51,7 +51,7 @@
           DestinationFolder="$(PluginDeploymentDirectory)"
           Condition="Exists('$(OutputPath)$(AssemblyName).pdb')" />
     <Copy SourceFiles="@(Assets)"
-          DestinationFolder="$(PluginDeploymentDirectory)/Assets" />
+          DestinationFolder="$(PluginDeploymentDirectory)/Assets/%(RecursiveDir)" />
   </Target>
 
 </Project>
