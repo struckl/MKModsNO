@@ -107,7 +107,7 @@ public class Plugin : BaseUnityPlugin
             "Stall, over-G and overspeed warnings.");
         RatteCombatWarnings = Config.Bind(
             "Bitching Ratte", "CombatWarnings", true,
-            "Radar lock warning and countermeasure low/out callouts.");
+            "Radar lock warning plus flare and electronic warfare low/out callouts.");
         RatteSystemWarnings = Config.Bind(
             "Bitching Ratte", "SystemWarnings", true,
             "Engine failure, fire and damage callouts (replaces the native engine failure audio).");

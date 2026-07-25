@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
 
@@ -108,8 +110,9 @@ internal static class BitchingRatte
     {
         "pull up", "altitude", "sink rate", "roll left", "roll right", "gear",
         "gear up", "gear down", "stall", "over g", "overspeed", "warning",
-        "countermeasures low", "countermeasures out", "engine fire",
-        "engine failure", "damage", "autopilot",
+        "flares low", "flares out", "electronic warfare low",
+        "electronic warfare out", "radar armed", "radar disarmed",
+        "engine fire", "engine failure", "damage", "autopilot",
     };
 
     private static Aircraft aircraft;
@@ -120,10 +123,26 @@ internal static class BitchingRatte
     // Edge-trigger latches (armed again once the condition clears with hysteresis).
     private static bool altitudeLatched;
     private static bool sinkRateLatched;
-    private static bool countermeasuresLowLatched;
-    private static bool countermeasuresOutLatched;
-    private static int lastCountermeasureAmmo = -1;
-    private static int maxCountermeasureAmmo;
+
+    /// <summary>Per-countermeasure-type ammo tracking (flares vs electronic warfare).</summary>
+    private class CountermeasureLane
+    {
+        public bool LowLatched;
+        public bool OutLatched;
+        public int LastAmmo = -1;
+        public int MaxSeen;
+
+        public void Reset()
+        {
+            LowLatched = false;
+            OutLatched = false;
+            LastAmmo = -1;
+            MaxSeen = 0;
+        }
+    }
+
+    private static readonly CountermeasureLane FlareLane = new CountermeasureLane();
+    private static readonly CountermeasureLane EwLane = new CountermeasureLane();
 
     public static void Initialize()
     {
@@ -162,10 +181,8 @@ internal static class BitchingRatte
         terrainWarning = null;
         altitudeLatched = false;
         sinkRateLatched = false;
-        countermeasuresLowLatched = false;
-        countermeasuresOutLatched = false;
-        lastCountermeasureAmmo = -1;
-        maxCountermeasureAmmo = 0;
+        FlareLane.Reset();
+        EwLane.Reset();
         VoiceQueue.Reset();
         MissileVoiceWarning.Reset();
 
@@ -316,31 +333,83 @@ internal static class BitchingRatte
             Say("autopilot", CalloutPriority.Advisory, 5f);
     }
 
-    public static void OnCountermeasureAmmo(int ammo)
+    // The station list and its element type are private to CountermeasureManager,
+    // so both are accessed through cached reflection handles.
+    private static readonly FieldInfo StationsField =
+        AccessTools.Field(typeof(CountermeasureManager), "countermeasureStations");
+    private static FieldInfo stationDisplayName;
+    private static FieldInfo stationAmmo;
+
+    public static void OnCountermeasuresChanged(CountermeasureManager manager)
     {
-        if (!Enabled || !Plugin.RatteCombatWarnings.Value)
+        if (!Enabled || !Plugin.RatteCombatWarnings.Value
+            || StationsField == null || !(StationsField.GetValue(manager) is IList stations))
             return;
 
-        if (ammo > lastCountermeasureAmmo)
+        int flareAmmo = 0;
+        int ewAmmo = 0;
+        bool flarePresent = false;
+        bool ewPresent = false;
+        foreach (object station in stations)
         {
-            // Rearm or first report: re-arm the latches, track full capacity.
-            maxCountermeasureAmmo = Mathf.Max(maxCountermeasureAmmo, ammo);
-            countermeasuresLowLatched = false;
-            countermeasuresOutLatched = false;
+            if (station == null)
+                continue;
+            if (stationDisplayName == null)
+            {
+                stationDisplayName = station.GetType().GetField("displayName");
+                stationAmmo = station.GetType().GetField("ammo");
+            }
+            string name = stationDisplayName?.GetValue(station) as string ?? string.Empty;
+            int ammo = stationAmmo != null ? (int)stationAmmo.GetValue(station) : 0;
+            if (name.IndexOf("flare", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                flareAmmo += ammo;
+                flarePresent = true;
+            }
+            else
+            {
+                ewAmmo += ammo;
+                ewPresent = true;
+            }
         }
-        lastCountermeasureAmmo = ammo;
 
-        if (ammo == 0 && !countermeasuresOutLatched)
+        if (flarePresent)
+            EvaluateLane(FlareLane, flareAmmo, "flares low", "flares out");
+        if (ewPresent)
+            EvaluateLane(EwLane, ewAmmo, "electronic warfare low", "electronic warfare out");
+    }
+
+    private static void EvaluateLane(CountermeasureLane lane, int ammo, string lowClip, string outClip)
+    {
+        if (lane.LastAmmo >= 0 && ammo > lane.LastAmmo)
         {
-            Say("countermeasures out", CalloutPriority.Combat, 0f);
-            countermeasuresOutLatched = true;
+            // Ammo went up: rearm — re-arm the latches.
+            lane.LowLatched = false;
+            lane.OutLatched = false;
         }
-        else if (ammo > 0 && maxCountermeasureAmmo > 0
-                 && ammo <= maxCountermeasureAmmo * 0.25f && !countermeasuresLowLatched)
+        lane.LastAmmo = ammo;
+        lane.MaxSeen = Mathf.Max(lane.MaxSeen, ammo);
+        if (lane.MaxSeen <= 0)
+            return;
+
+        if (ammo == 0 && !lane.OutLatched)
         {
-            Say("countermeasures low", CalloutPriority.Combat, 0f);
-            countermeasuresLowLatched = true;
+            Say(outClip, CalloutPriority.Combat, 0f);
+            lane.OutLatched = true;
+            lane.LowLatched = true;
         }
+        else if (ammo > 0 && ammo <= lane.MaxSeen * 0.25f && !lane.LowLatched)
+        {
+            Say(lowClip, CalloutPriority.Combat, 0f);
+            lane.LowLatched = true;
+        }
+    }
+
+    public static void OnRadarToggled(bool activated)
+    {
+        if (!Enabled || !Plugin.RatteAdvisoryCallouts.Value)
+            return;
+        Say(activated ? "radar armed" : "radar disarmed", CalloutPriority.Advisory, 1f);
     }
 
     public static bool IsLocalAircraft(Aircraft candidate)
@@ -361,7 +430,7 @@ internal static class BitchingRatte
     }
 }
 
-/// <summary>Tracks the local player's aircraft and feeds the countermeasure counter.</summary>
+/// <summary>Tracks the local player's aircraft.</summary>
 [HarmonyPatch(typeof(CombatHUD))]
 internal static class RatteCombatHudPatches
 {
@@ -372,12 +441,37 @@ internal static class RatteCombatHudPatches
         if (BitchingRatte.Enabled)
             BitchingRatte.AssignAircraft(aircraft);
     }
+}
+
+/// <summary>Per-type countermeasure ammo callouts (flares vs electronic warfare).</summary>
+[HarmonyPatch(typeof(CountermeasureManager))]
+internal static class RatteCountermeasurePatches
+{
+    [HarmonyPostfix]
+    [HarmonyPatch("DeployCountermeasure")]
+    private static void DeployCountermeasure(CountermeasureManager __instance, Aircraft aircraft)
+    {
+        if (BitchingRatte.IsLocalAircraft(aircraft))
+            BitchingRatte.OnCountermeasuresChanged(__instance);
+    }
 
     [HarmonyPostfix]
-    [HarmonyPatch("DisplayCountermeasureAmmo")]
-    private static void DisplayCountermeasureAmmo(int ammo)
+    [HarmonyPatch("CountmeasureManager_OnRearm")]
+    private static void OnRearm(CountermeasureManager __instance, Aircraft ___aircraft)
     {
-        BitchingRatte.OnCountermeasureAmmo(ammo);
+        if (BitchingRatte.IsLocalAircraft(___aircraft))
+            BitchingRatte.OnCountermeasuresChanged(__instance);
+    }
+}
+
+/// <summary>Radar arm status advisories for the local aircraft.</summary>
+[HarmonyPatch(typeof(Aircraft), "UserCode_RpcToggleRadar_1325449311")]
+internal static class RatteRadarTogglePatch
+{
+    private static void Postfix(Aircraft __instance, bool activated)
+    {
+        if (BitchingRatte.IsLocalAircraft(__instance))
+            BitchingRatte.OnRadarToggled(activated);
     }
 }
 

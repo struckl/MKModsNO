@@ -33,10 +33,12 @@ each other. Covers:
   when descending low and slow with the gear still up.
 - **Flight envelope**: "Stall" (per-aircraft AoA threshold), "Over G"
   (per-aircraft G limit), "Overspeed".
-- **Combat**: "Warning" on a hostile radar lock, "Countermeasures low/out".
+- **Combat**: "Warning" on a hostile radar lock, "Flares low/out" and
+  "Electronic warfare low/out" per countermeasure type.
 - **Systems**: "Engine failure" (replaces the native engine failure audio),
   "Engine fire", "Damage" on fuel tank hits.
-- **Advisories**: "Gear up/down", "Autopilot" when flight assist is disabled.
+- **Advisories**: "Gear up/down", "Radar armed/disarmed", "Autopilot" when
+  flight assist is disabled.
 
 Missile and fuel warnings (below) are routed through the same queue.
 Every group can be toggled individually in the config.
