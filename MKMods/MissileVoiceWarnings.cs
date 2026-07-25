@@ -1,176 +1,132 @@
-
-
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using HarmonyLib;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace MKMods;
 
-class MissileVoiceWarningGlobals
+/// <summary>
+/// Plays a voice warning while missiles are locked onto the player, naming the
+/// appropriate countermeasure for the seeker type. Multiple simultaneous threat
+/// types are announced in rotation, one per cooldown interval.
+/// </summary>
+internal static class MissileVoiceWarning
 {
-    public static Dictionary<string, string> seekerToAudioPath = new Dictionary<string, string>
+    // Seeker ids as reported by MissileSeeker.GetSeekerType().
+    private static readonly (string type, string file)[] Warnings =
     {
-        {new IRSeeker().GetSeekerType(), "flare.mp3"},
-        {new OpticalSeeker().GetSeekerType(), "hide.mp3"},
-        {new ARHSeeker().GetSeekerType(), "notch.mp3"},
-        {new SARHSeeker().GetSeekerType(), "notch.mp3"},
-        {new ARMSeeker().GetSeekerType(), "radar.mp3"},
+        ("IR", "flare.mp3"),
+        ("Optical", "hide.mp3"),
+        ("ARH", "notch.mp3"),
+        ("SARH", "notch.mp3"),
+        ("ARAD", "radar.mp3"),
     };
 
-    public static Dictionary<string, AudioClip> seekerToAudioClip = new Dictionary<string, AudioClip>();
+    private const float VoiceCooldownSeconds = 1f;
+    private const float Volume = 3f;
 
-    public static Dictionary<string, int> numMissiles = new Dictionary<string, int>
-    {
-        {new IRSeeker().GetSeekerType(), 0},
-        {new OpticalSeeker().GetSeekerType(), 0},
-        {new ARHSeeker().GetSeekerType(), 0},
-        {new SARHSeeker().GetSeekerType(), 0},
-        {new ARMSeeker().GetSeekerType(), 0},
-    };
+    private static readonly Dictionary<string, AudioClip> Clips = new Dictionary<string, AudioClip>();
+    private static readonly Dictionary<string, int> IncomingCounts = new Dictionary<string, int>();
+    private static int rotationIndex;
+    private static float lastPlayedTime;
 
-    public static int missileTypeIndex = 0;
-    public static float voiceLastPlayed = 0;
     public static void Initialize()
     {
-        if (!Plugin.missileVoiceWarnings.Value)
-        {
+        if (!Plugin.MissileVoiceWarnings.Value)
             return;
-        }
-        Plugin.Logger.LogInfo("MissileVoiceWarning Start");
-        // Load audio clips from seekerToAudioPath
-        foreach (var kvp in seekerToAudioPath)
+
+        foreach ((string type, string file) in Warnings)
         {
-            var actualPath = Path.Combine(Plugin.assetsPath, kvp.Value);
-            Plugin.Logger.LogInfo($"Loading {actualPath}");
-            using (var uwr = UnityWebRequestMultimedia.GetAudioClip(
-                $"file://{actualPath}", AudioType.MPEG))
+            AudioClip clip = AudioLoader.Load(file);
+            if (clip != null)
+                Clips[type] = clip;
+        }
+        Reset();
+    }
+
+    public static void Reset()
+    {
+        IncomingCounts.Clear();
+        foreach ((string type, _) in Warnings)
+            IncomingCounts[type] = 0;
+        rotationIndex = 0;
+        lastPlayedTime = 0f;
+    }
+
+    public static void OnMissileDetected(string seekerType)
+    {
+        // Unknown seeker types (new game versions, no audio mapping) are ignored.
+        if (IncomingCounts.TryGetValue(seekerType, out int count))
+            IncomingCounts[seekerType] = count + 1;
+    }
+
+    public static void OnMissileLost(string seekerType)
+    {
+        if (IncomingCounts.TryGetValue(seekerType, out int count) && count > 0)
+            IncomingCounts[seekerType] = count - 1;
+    }
+
+    public static void PlayPendingWarning()
+    {
+        if (Time.timeSinceLevelLoad - lastPlayedTime < VoiceCooldownSeconds)
+            return;
+
+        for (int step = 1; step <= Warnings.Length; step++)
+        {
+            int candidate = (rotationIndex + step) % Warnings.Length;
+            string type = Warnings[candidate].type;
+            if (IncomingCounts[type] > 0 && Clips.TryGetValue(type, out AudioClip clip))
             {
-                uwr.SendWebRequest();
-                while (!uwr.isDone) { }
-                if (uwr.result == UnityWebRequest.Result.Success)
-                {
-                    var audioClip = DownloadHandlerAudioClip.GetContent(uwr);
-                    seekerToAudioClip[kvp.Key] = audioClip;
-                    Plugin.Logger.LogInfo($"Loaded {actualPath}");
-                }
-                else
-                {
-                    Plugin.Logger.LogError($"Failed to load audio clip from {actualPath}: {uwr.error}");
-                }
+                InterfaceAudio.PlayOneShot(clip, Volume);
+                lastPlayedTime = Time.timeSinceLevelLoad;
+                rotationIndex = candidate;
+                return;
             }
         }
     }
 }
 
-
-[HarmonyPatch(typeof(ThreatList), "ThreatList_OnMissileWarning")]
-class ThreatList_OnMissileWarningPatch
+/// <summary>
+/// Hooks the HUD threat list to track how many missiles of each seeker type are
+/// currently locked onto the player.
+/// </summary>
+[HarmonyPatch(typeof(ThreatList))]
+internal static class ThreatListPatches
 {
-    static void Prefix(ThreatList __instance, ref MissileWarning.OnMissileWarning e)
+    [HarmonyPrefix]
+    [HarmonyPatch("SetAircraft")]
+    private static void SetAircraft()
     {
-        if (!Plugin.missileVoiceWarnings.Value)
-        {
-            return;
-        }
-        var itemLookup = Traverse.Create(__instance).Field("itemLookup")
-            .GetValue<Dictionary<int, ThreatItem>>();
-
-
-        if (itemLookup.ContainsKey(e.missile.persistentID))
-        {
-            return;
-        }
-
-        var seekerType = e.missile.GetSeekerType();
-        MissileVoiceWarningGlobals.numMissiles[seekerType]++;
-
-        Plugin.Logger.LogInfo($"MissileVoiceWarning: {seekerType} -> {MissileVoiceWarningGlobals.numMissiles[seekerType]}");
+        if (Plugin.MissileVoiceWarnings.Value)
+            MissileVoiceWarning.Reset();
     }
-}
 
-[HarmonyPatch(typeof(ThreatList), "ThreatList_OffMissileWarning")]
-class ThreatList_OffMissileWarningPatch
-{
-    static void Prefix(ThreatList __instance, ref MissileWarning.OffMissileWarning e)
+    [HarmonyPrefix]
+    [HarmonyPatch("ThreatList_OnMissileWarning")]
+    private static void OnMissileWarning(
+        ref MissileWarning.OnMissileWarning e,
+        Dictionary<PersistentID, ThreatItem> ___itemLookup)
     {
-        if (!Plugin.missileVoiceWarnings.Value)
-        {
-            return;
-        }
-        var itemLookup = Traverse.Create(__instance).Field("itemLookup")
-            .GetValue<Dictionary<int, ThreatItem>>();
-
-        if (!itemLookup.ContainsKey(e.missile.persistentID))
-        {
-            return;
-        }
-
-        var seekerType = e.missile.GetSeekerType();
-        MissileVoiceWarningGlobals.numMissiles[seekerType]--;
-
-        Plugin.Logger.LogInfo($"MissileVoiceWarning: {seekerType} -> {MissileVoiceWarningGlobals.numMissiles[seekerType]}");
+        // Only count missiles the threat list does not know about yet; the
+        // original method adds them to the lookup after this prefix runs.
+        if (Plugin.MissileVoiceWarnings.Value && !___itemLookup.ContainsKey(e.missile.persistentID))
+            MissileVoiceWarning.OnMissileDetected(e.missile.GetSeekerType());
     }
-}
 
-[HarmonyPatch(typeof(ThreatList), "Update")]
-class ThreatListUpdatePatch
-{
-    static void Postfix(ThreatList __instance)
+    [HarmonyPrefix]
+    [HarmonyPatch("ThreatList_OffMissileWarning")]
+    private static void OffMissileWarning(
+        ref MissileWarning.OffMissileWarning e,
+        Dictionary<PersistentID, ThreatItem> ___itemLookup)
     {
-        if (!Plugin.missileVoiceWarnings.Value)
-        {
-            return;
-        }
-        if (Time.timeSinceLevelLoad - MissileVoiceWarningGlobals.voiceLastPlayed < 1)
-        {
-            return;
-        }
-
-        for (var i = 1; i <= MissileVoiceWarningGlobals.seekerToAudioClip.Count; i++)
-        {
-            var hypotheticalIndex = (i + MissileVoiceWarningGlobals.missileTypeIndex)
-                % MissileVoiceWarningGlobals.seekerToAudioClip.Count;
-
-            var seekerType = MissileVoiceWarningGlobals.seekerToAudioClip.Keys
-                .ToList()[hypotheticalIndex];
-
-            if (MissileVoiceWarningGlobals.numMissiles[seekerType] > 0)
-            {
-                InterfaceAudio.PlayOneShotV(
-                    MissileVoiceWarningGlobals.seekerToAudioClip[seekerType],
-                    3f
-                );
-                Plugin.Logger.LogInfo($"Playing {seekerType}");
-                MissileVoiceWarningGlobals.voiceLastPlayed = Time.timeSinceLevelLoad;
-                MissileVoiceWarningGlobals.missileTypeIndex = hypotheticalIndex;
-                break;
-            }
-        }
-
+        if (Plugin.MissileVoiceWarnings.Value && ___itemLookup.ContainsKey(e.missile.persistentID))
+            MissileVoiceWarning.OnMissileLost(e.missile.GetSeekerType());
     }
-}
 
-[HarmonyPatch(typeof(ThreatList), "SetAircraft")]
-class ThreatListSetAircraftPatch
-{
-    static void Prefix(ThreatList __instance, ref Aircraft aircraft)
+    [HarmonyPostfix]
+    [HarmonyPatch("Update")]
+    private static void Update()
     {
-        if (!Plugin.missileVoiceWarnings.Value)
-        {
-            return;
-        }
-        MissileVoiceWarningGlobals.numMissiles = new Dictionary<string, int>
-        {
-            {new IRSeeker().GetSeekerType(), 0},
-            {new OpticalSeeker().GetSeekerType(), 0},
-            {new ARHSeeker().GetSeekerType(), 0},
-            {new SARHSeeker().GetSeekerType(), 0},
-            {new ARMSeeker().GetSeekerType(), 0},
-        };
-        MissileVoiceWarningGlobals.missileTypeIndex = 0;
-        MissileVoiceWarningGlobals.voiceLastPlayed = 0;
+        if (Plugin.MissileVoiceWarnings.Value)
+            MissileVoiceWarning.PlayPendingWarning();
     }
 }
