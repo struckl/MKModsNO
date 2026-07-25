@@ -22,12 +22,25 @@ internal static class MissileVoiceWarning
     };
 
     private const float VoiceCooldownSeconds = 1f;
-    private const float Volume = 3f;
 
     private static readonly Dictionary<string, AudioClip> Clips = new Dictionary<string, AudioClip>();
     private static readonly Dictionary<string, int> IncomingCounts = new Dictionary<string, int>();
     private static int rotationIndex;
     private static float lastPlayedTime;
+
+    /// <summary>True while at least one missile is locked onto the player.</summary>
+    public static bool HasIncoming
+    {
+        get
+        {
+            foreach (int count in IncomingCounts.Values)
+            {
+                if (count > 0)
+                    return true;
+            }
+            return false;
+        }
+    }
 
     public static void Initialize()
     {
@@ -76,7 +89,7 @@ internal static class MissileVoiceWarning
             string type = Warnings[candidate].type;
             if (IncomingCounts[type] > 0 && Clips.TryGetValue(type, out AudioClip clip))
             {
-                InterfaceAudio.PlayOneShot(clip, Volume);
+                VoiceQueue.Say($"missile {type}", clip, CalloutPriority.Missile, 0f);
                 lastPlayedTime = Time.timeSinceLevelLoad;
                 rotationIndex = candidate;
                 return;

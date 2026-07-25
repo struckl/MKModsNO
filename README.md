@@ -17,6 +17,25 @@ In simpler terms, this system prioritizes quickly selecting new individual targe
 in a logical way. It's similar to the targeting system of
 [Arma 3](https://store.steampowered.com/agecheck/app/107410).
 
+### Bitching Ratte — voice warning system
+
+A complete cockpit voice warning system in the style of the F/A-18's
+"Bitching Betty". One voice, one priority queue — callouts never talk over
+each other. Covers:
+
+- **Terrain**: "Pull up" (uses the game's own terrain prediction), "Altitude",
+  "Sink rate", "Roll left/right" when inverted near the ground, and "Gear"
+  when descending low and slow with the gear still up.
+- **Flight envelope**: "Stall" (per-aircraft AoA threshold), "Over G"
+  (per-aircraft G limit), "Overspeed".
+- **Combat**: "Warning" on a hostile radar lock, "Countermeasures low/out".
+- **Systems**: "Engine failure" (replaces the native engine failure audio),
+  "Engine fire", "Damage" on fuel tank hits.
+- **Advisories**: "Gear up/down", "Autopilot" when flight assist is disabled.
+
+Missile and fuel warnings (below) are routed through the same queue.
+Every group can be toggled individually in the config.
+
 ### Audible missile warnings
 
 Plays a warning sound when a missile is locked onto the player's plane. The specific

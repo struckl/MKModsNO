@@ -11,7 +11,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "xyz.huestudios.mk.mkmods";
     public const string Name = "MK Mods";
-    public const string Version = "2.0.0";
+    public const string Version = "2.1.0";
 
     internal static new ManualLogSource Logger;
     internal static string AssetsPath;
@@ -29,6 +29,16 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<float> BingoFuelMinutes;
     internal static ConfigEntry<float> FuelWarningUpdateRate;
 
+    // Bitching Ratte
+    internal static ConfigEntry<bool> RatteEnabled;
+    internal static ConfigEntry<bool> RatteTerrainWarnings;
+    internal static ConfigEntry<bool> RatteEnvelopeWarnings;
+    internal static ConfigEntry<bool> RatteCombatWarnings;
+    internal static ConfigEntry<bool> RatteSystemWarnings;
+    internal static ConfigEntry<bool> RatteAdvisoryCallouts;
+    internal static ConfigEntry<float> RatteAltitudeFloor;
+    internal static ConfigEntry<float> RattePullUpUrgency;
+
     private void Awake()
     {
         Logger = base.Logger;
@@ -37,9 +47,15 @@ public class Plugin : BaseUnityPlugin
         BindConfig();
         MissileVoiceWarning.Initialize();
         FuelWarning.Initialize();
+        BitchingRatte.Initialize();
 
         new Harmony(Guid).PatchAll();
         Logger.LogInfo($"{Name} {Version} loaded.");
+    }
+
+    private void Update()
+    {
+        BitchingRatte.Tick();
     }
 
     private void BindConfig()
@@ -72,5 +88,30 @@ public class Plugin : BaseUnityPlugin
         FuelWarningUpdateRate = Config.Bind(
             "Warnings", "FuelWarningUpdateRate", 10f,
             "Seconds between fuel level samples.");
+
+        RatteEnabled = Config.Bind(
+            "Bitching Ratte", "Enabled", true,
+            "Enable the Bitching Ratte voice warning system.");
+        RatteTerrainWarnings = Config.Bind(
+            "Bitching Ratte", "TerrainWarnings", true,
+            "Pull up, altitude, sink rate, roll and gear-up-landing warnings.");
+        RatteEnvelopeWarnings = Config.Bind(
+            "Bitching Ratte", "EnvelopeWarnings", true,
+            "Stall, over-G and overspeed warnings.");
+        RatteCombatWarnings = Config.Bind(
+            "Bitching Ratte", "CombatWarnings", true,
+            "Radar lock warning and countermeasure low/out callouts.");
+        RatteSystemWarnings = Config.Bind(
+            "Bitching Ratte", "SystemWarnings", true,
+            "Engine failure, fire and damage callouts (replaces the native engine failure audio).");
+        RatteAdvisoryCallouts = Config.Bind(
+            "Bitching Ratte", "AdvisoryCallouts", true,
+            "Gear up/down and flight assist callouts.");
+        RatteAltitudeFloor = Config.Bind(
+            "Bitching Ratte", "AltitudeFloorMeters", 150f,
+            "Radar altitude below which the altitude warning plays (gear up, descending).");
+        RattePullUpUrgency = Config.Bind(
+            "Bitching Ratte", "PullUpUrgency", 1.5f,
+            "Terrain closure urgency required to trigger the pull up warning (lower = earlier).");
     }
 }

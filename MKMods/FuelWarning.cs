@@ -14,7 +14,6 @@ internal static class FuelWarning
     private const string LabelName = "MKModsFuelTime";
     private const float LabelCreationDelaySeconds = 3f;
     private const float LabelVerticalOffset = -20f;
-    private const float Volume = 3f;
 
     private static AudioClip lowFuelClip;
     private static AudioClip bingoFuelClip;
@@ -71,9 +70,9 @@ internal static class FuelWarning
             : $"({Mathf.FloorToInt(secondsRemaining / 60f)}m)";
 
         if (secondsRemaining < bingoFuelSeconds)
-            InterfaceAudio.PlayOneShot(bingoFuelClip, Volume);
+            VoiceQueue.Say("bingo fuel", bingoFuelClip, CalloutPriority.Fuel, 0f);
         else if (secondsRemaining < lowFuelSeconds)
-            InterfaceAudio.PlayOneShot(lowFuelClip, Volume);
+            VoiceQueue.Say("fuel low", lowFuelClip, CalloutPriority.Fuel, 0f);
     }
 
     private static bool TryCreateLabel(FuelGauge gauge, Text fuelLabel)
