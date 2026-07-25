@@ -32,6 +32,12 @@ public class Plugin : BaseUnityPlugin
     // HUD
     internal static ConfigEntry<float> ClimbRateVerticalOffset;
 
+    // Radio chatter
+    internal static ConfigEntry<bool> RadioChatterEnabled;
+    internal static ConfigEntry<float> RadioChatterVolume;
+    internal static ConfigEntry<float> RadioChatterMinPause;
+    internal static ConfigEntry<float> RadioChatterMaxPause;
+
     // Bitching Ratte
     internal static ConfigEntry<bool> RatteEnabled;
     internal static ConfigEntry<bool> RatteTerrainWarnings;
@@ -51,6 +57,7 @@ public class Plugin : BaseUnityPlugin
         MissileVoiceWarning.Initialize();
         FuelWarning.Initialize();
         BitchingRatte.Initialize();
+        RadioChatter.Initialize();
 
         new Harmony(Guid).PatchAll();
         Logger.LogInfo($"{Name} {Version} loaded.");
@@ -59,6 +66,7 @@ public class Plugin : BaseUnityPlugin
     private void Update()
     {
         BitchingRatte.Tick();
+        RadioChatter.Tick();
     }
 
     private void BindConfig()
@@ -95,6 +103,19 @@ public class Plugin : BaseUnityPlugin
         ClimbRateVerticalOffset = Config.Bind(
             "HUD", "ClimbRateVerticalOffset", 40f,
             "Moves the climb rate (+/- m) readout up by this many pixels (negative moves it down, 0 disables).");
+
+        RadioChatterEnabled = Config.Bind(
+            "Radio Chatter", "Enabled", true,
+            "Play ambient radio chatter in the background while flying.");
+        RadioChatterVolume = Config.Bind(
+            "Radio Chatter", "Volume", 0.5f,
+            "Chatter volume relative to other interface audio (warnings play at 3.0).");
+        RadioChatterMinPause = Config.Bind(
+            "Radio Chatter", "MinPauseSeconds", 20f,
+            "Minimum silence between chatter transmissions.");
+        RadioChatterMaxPause = Config.Bind(
+            "Radio Chatter", "MaxPauseSeconds", 90f,
+            "Maximum silence between chatter transmissions.");
 
         RatteEnabled = Config.Bind(
             "Bitching Ratte", "Enabled", true,

@@ -22,6 +22,12 @@ in a logical way. It's similar to the targeting system of
 Moves the climb rate readout (the "+10 m / -5 m" text) up from its awkwardly
 low default position. Offset is configurable.
 
+### Radio chatter
+
+Ambient low-volume radio chatter while flying — short transmissions with
+random pauses, so the cockpit never feels dead quiet. Volume and pause range
+are configurable.
+
 ### Bitching Ratte — voice warning system
 
 A complete cockpit voice warning system in the style of the F/A-18's
