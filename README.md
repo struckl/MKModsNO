@@ -24,9 +24,11 @@ low default position. Offset is configurable.
 
 ### Radio chatter
 
-Ambient low-volume radio chatter while flying — short transmissions with
-random pauses, so the cockpit never feels dead quiet. Volume and pause range
-are configurable.
+Ambient low-volume radio chatter while flying — short pilot/controller
+conversations (check-ins, kill calls, landing clearances) with random pauses,
+so the cockpit never feels dead quiet. Different pilot voices talk to a
+constant controller voice; chatter waits while a warning is speaking.
+Volume and pause range are configurable.
 
 ### Bitching Ratte — voice warning system
 

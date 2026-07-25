@@ -65,6 +65,9 @@ internal static class VoiceQueue
         });
     }
 
+    /// <summary>True while a callout is playing or waiting to play.</summary>
+    public static bool IsBusy => Queue.Count > 0 || Time.unscaledTime < busyUntil;
+
     public static void Tick()
     {
         if (Queue.Count == 0 || Time.unscaledTime < busyUntil)

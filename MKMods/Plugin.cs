@@ -111,11 +111,11 @@ public class Plugin : BaseUnityPlugin
             "Radio Chatter", "Volume", 0.5f,
             "Chatter volume relative to other interface audio (warnings play at 3.0).");
         RadioChatterMinPause = Config.Bind(
-            "Radio Chatter", "MinPauseSeconds", 20f,
-            "Minimum silence between chatter transmissions.");
+            "Radio Chatter", "MinPauseSeconds", 45f,
+            "Minimum silence between chatter conversations.");
         RadioChatterMaxPause = Config.Bind(
-            "Radio Chatter", "MaxPauseSeconds", 90f,
-            "Maximum silence between chatter transmissions.");
+            "Radio Chatter", "MaxPauseSeconds", 180f,
+            "Maximum silence between chatter conversations.");
 
         RatteEnabled = Config.Bind(
             "Bitching Ratte", "Enabled", true,
