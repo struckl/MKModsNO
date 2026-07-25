@@ -17,6 +17,11 @@ In simpler terms, this system prioritizes quickly selecting new individual targe
 in a logical way. It's similar to the targeting system of
 [Arma 3](https://store.steampowered.com/agecheck/app/107410).
 
+### HUD tweaks
+
+Moves the climb rate readout (the "+10 m / -5 m" text) up from its awkwardly
+low default position. Offset is configurable.
+
 ### Bitching Ratte — voice warning system
 
 A complete cockpit voice warning system in the style of the F/A-18's

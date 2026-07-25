@@ -29,6 +29,9 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<float> BingoFuelMinutes;
     internal static ConfigEntry<float> FuelWarningUpdateRate;
 
+    // HUD
+    internal static ConfigEntry<float> ClimbRateVerticalOffset;
+
     // Bitching Ratte
     internal static ConfigEntry<bool> RatteEnabled;
     internal static ConfigEntry<bool> RatteTerrainWarnings;
@@ -88,6 +91,10 @@ public class Plugin : BaseUnityPlugin
         FuelWarningUpdateRate = Config.Bind(
             "Warnings", "FuelWarningUpdateRate", 10f,
             "Seconds between fuel level samples.");
+
+        ClimbRateVerticalOffset = Config.Bind(
+            "HUD", "ClimbRateVerticalOffset", 40f,
+            "Moves the climb rate (+/- m) readout up by this many pixels (negative moves it down, 0 disables).");
 
         RatteEnabled = Config.Bind(
             "Bitching Ratte", "Enabled", true,
