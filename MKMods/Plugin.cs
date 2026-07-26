@@ -32,11 +32,6 @@ public class Plugin : BaseUnityPlugin
     // HUD
     internal static ConfigEntry<float> ClimbRateVerticalOffset;
 
-    // Approach assist
-    internal static ConfigEntry<bool> ApproachAssistEnabled;
-    internal static ConfigEntry<bool> ApproachAutoSelect;
-    internal static ConfigEntry<KeyboardShortcut> ApproachSelectKey;
-
     // Bitching Ratte
     internal static ConfigEntry<bool> RatteEnabled;
     internal static ConfigEntry<bool> RatteTerrainWarnings;
@@ -64,7 +59,6 @@ public class Plugin : BaseUnityPlugin
     private void Update()
     {
         BitchingRatte.Tick();
-        ApproachAssist.Tick();
     }
 
     private void BindConfig()
@@ -101,16 +95,6 @@ public class Plugin : BaseUnityPlugin
         ClimbRateVerticalOffset = Config.Bind(
             "HUD", "ClimbRateVerticalOffset", 40f,
             "Moves the climb rate (+/- m) readout up by this many pixels (negative moves it down, 0 disables).");
-
-        ApproachAssistEnabled = Config.Bind(
-            "Approach Assist", "Enabled", true,
-            "Select a friendly airbase for landing guidance at any range.");
-        ApproachAutoSelect = Config.Bind(
-            "Approach Assist", "AutoSelectOnGearDown", true,
-            "Lowering the gear automatically selects the nearest friendly airbase (no keybind needed).");
-        ApproachSelectKey = Config.Bind(
-            "Approach Assist", "SelectKey", new KeyboardShortcut(UnityEngine.KeyCode.L),
-            "Optional: cycles friendly airbases nearest-first; one press past the last turns guidance off. Also accepts JoystickButton0-19 for HOTAS/controller. Clicking an airbase icon on the maximized map works too.");
 
         RatteEnabled = Config.Bind(
             "Bitching Ratte", "Enabled", true,

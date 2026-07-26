@@ -22,17 +22,6 @@ in a logical way. It's similar to the targeting system of
 Moves the climb rate readout (the "+10 m / -5 m" text) up from its awkwardly
 low default position. Offset is configurable.
 
-### Approach assist
-
-The game only shows its landing glideslope when you happen to fly within
-5 km of a friendly base. Approach assist lets you pick your landing base
-deliberately: press the select key (default `L`) to pick the nearest
-friendly airbase with a runway — press again to cycle further bases,
-one press past the last turns guidance off. In flight you can also click
-an airbase icon on the maximized map (normally those clicks only work on
-the spawn screen). Lower the gear and the game draws the native glideslope
-to the chosen runway at any distance.
-
 ### Bitching Ratte — voice warning system
 
 A complete cockpit voice warning system in the style of the F/A-18's
@@ -101,10 +90,15 @@ A successful build automatically copies the plugin into
 
 ## Version 3.0 notes
 
-The ambient radio chatter moved out into its own standalone plugin,
-[Ratten Chatter](https://github.com/struckl/RattenChatter), so it can be
-installed without the rest of MKMods. Chatter still keeps out of the way of
-the Bitching Ratte callouts when both plugins are installed.
+Two features moved out into standalone plugins so they can be installed
+without the rest of MKMods:
+
+- [Ratten Chatter](https://github.com/struckl/RattenChatter) — the ambient
+  radio chatter. It still keeps out of the way of the Bitching Ratte callouts
+  when both plugins are installed.
+- [Cleared Ratte](https://github.com/struckl/ClearedRatte) — the approach
+  assist that draws the native landing glideslope to an airbase of your
+  choosing at any range.
 
 ## Version 2.0 notes
 
