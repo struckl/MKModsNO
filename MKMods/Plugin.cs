@@ -38,6 +38,10 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<float> RadioChatterMinPause;
     internal static ConfigEntry<float> RadioChatterMaxPause;
 
+    // Approach assist
+    internal static ConfigEntry<bool> ApproachAssistEnabled;
+    internal static ConfigEntry<KeyboardShortcut> ApproachSelectKey;
+
     // Bitching Ratte
     internal static ConfigEntry<bool> RatteEnabled;
     internal static ConfigEntry<bool> RatteTerrainWarnings;
@@ -67,6 +71,7 @@ public class Plugin : BaseUnityPlugin
     {
         BitchingRatte.Tick();
         RadioChatter.Tick();
+        ApproachAssist.Tick();
     }
 
     private void BindConfig()
@@ -116,6 +121,13 @@ public class Plugin : BaseUnityPlugin
         RadioChatterMaxPause = Config.Bind(
             "Radio Chatter", "MaxPauseSeconds", 180f,
             "Maximum silence between chatter conversations.");
+
+        ApproachAssistEnabled = Config.Bind(
+            "Approach Assist", "Enabled", true,
+            "Select a friendly airbase for landing guidance at any range.");
+        ApproachSelectKey = Config.Bind(
+            "Approach Assist", "SelectKey", new KeyboardShortcut(UnityEngine.KeyCode.L),
+            "Cycles friendly airbases nearest-first; one press past the last turns guidance off. Clicking an airbase icon on the maximized map also works.");
 
         RatteEnabled = Config.Bind(
             "Bitching Ratte", "Enabled", true,

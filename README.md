@@ -22,6 +22,17 @@ in a logical way. It's similar to the targeting system of
 Moves the climb rate readout (the "+10 m / -5 m" text) up from its awkwardly
 low default position. Offset is configurable.
 
+### Approach assist
+
+The game only shows its landing glideslope when you happen to fly within
+5 km of a friendly base. Approach assist lets you pick your landing base
+deliberately: press the select key (default `L`) to pick the nearest
+friendly airbase with a runway — press again to cycle further bases,
+one press past the last turns guidance off. In flight you can also click
+an airbase icon on the maximized map (normally those clicks only work on
+the spawn screen). Lower the gear and the game draws the native glideslope
+to the chosen runway at any distance.
+
 ### Radio chatter
 
 Ambient low-volume radio chatter while flying — short pilot/controller
