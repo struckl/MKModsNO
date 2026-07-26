@@ -108,13 +108,13 @@ public class Plugin : BaseUnityPlugin
             "Radio Chatter", "Enabled", true,
             "Play ambient radio chatter in the background while flying.");
         RadioChatterVolume = Config.Bind(
-            "Radio Chatter", "Volume", 0.5f,
+            "Radio Chatter", "Volume", 1.2f,
             "Chatter volume relative to other interface audio (warnings play at 3.0).");
         RadioChatterMinPause = Config.Bind(
-            "Radio Chatter", "MinPauseSeconds", 45f,
+            "Radio Chatter", "MinPauseSeconds", 12f,
             "Minimum silence between chatter conversations.");
         RadioChatterMaxPause = Config.Bind(
-            "Radio Chatter", "MaxPauseSeconds", 180f,
+            "Radio Chatter", "MaxPauseSeconds", 45f,
             "Maximum silence between chatter conversations.");
 
         RatteEnabled = Config.Bind(
