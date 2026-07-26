@@ -157,5 +157,7 @@ public class Plugin : BaseUnityPlugin
         RattePullUpUrgency = Config.Bind(
             "Bitching Ratte", "PullUpUrgency", 1.5f,
             "Terrain closure urgency required to trigger the pull up warning (lower = earlier).");
+
+        SoundToggles.Bind(Config);
     }
 }
