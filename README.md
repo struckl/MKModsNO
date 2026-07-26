@@ -41,7 +41,8 @@ each other. Covers:
   flight assist is disabled.
 
 Missile and fuel warnings (below) are routed through the same queue.
-Every group can be toggled individually in the config.
+Groups can be toggled in the config, and every single callout has its own
+switch under the "Callouts" sections — mute just the ones that annoy you.
 
 ### Audible missile warnings
 
@@ -73,7 +74,7 @@ is below 3 minutes.
 
 This mod supports various config settings like disabling each feature and finetuning
 some values. Use the [BepInEx configuration manager](https://github.com/BepInEx/BepInEx.ConfigurationManager)
-to modify these.
+to modify these — press ``F1`` in game to open it.
 
 ## How to build
 

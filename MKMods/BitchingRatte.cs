@@ -44,7 +44,7 @@ internal static class VoiceQueue
     /// <summary>Request a callout. Ignored while its per-key cooldown is active.</summary>
     public static void Say(string key, AudioClip clip, CalloutPriority priority, float cooldownSeconds)
     {
-        if (clip == null)
+        if (clip == null || !SoundToggles.IsEnabled(key))
             return;
         if (LastPlayed.TryGetValue(key, out float last)
             && Time.unscaledTime - last < cooldownSeconds)
