@@ -5,21 +5,17 @@ using UnityEngine.UI;
 namespace MKMods;
 
 /// <summary>
-/// Shows the estimated remaining fuel time next to the fuel gauge and plays
-/// low fuel / bingo fuel voice warnings when it drops below the configured
-/// thresholds. Fuel time is estimated from consumption between samples.
+/// Shows the estimated remaining fuel time next to the fuel gauge. The estimate
+/// comes from the fuel burned between samples, so it tracks the current throttle
+/// setting rather than a fixed rate. The matching voice callouts ("fuel low",
+/// "bingo fuel") live in the separate Bitching Ratte plugin.
 /// </summary>
-internal static class FuelWarning
+internal static class FuelTime
 {
     private const string LabelName = "MKModsFuelTime";
     private const float LabelCreationDelaySeconds = 3f;
     private const float LabelVerticalOffset = -20f;
 
-    private static AudioClip lowFuelClip;
-    private static AudioClip bingoFuelClip;
-
-    private static float lowFuelSeconds;
-    private static float bingoFuelSeconds;
     private static float sampleIntervalSeconds;
 
     private static Text fuelTimeLabel;
@@ -29,14 +25,9 @@ internal static class FuelWarning
 
     public static void Initialize()
     {
-        if (!Plugin.FuelWarnings.Value)
+        if (!Plugin.FuelTimeReadout.Value)
             return;
-
-        lowFuelSeconds = Plugin.FuelWarningMinutes.Value * 60f;
-        bingoFuelSeconds = Plugin.BingoFuelMinutes.Value * 60f;
-        sampleIntervalSeconds = Plugin.FuelWarningUpdateRate.Value;
-        lowFuelClip = AudioLoader.Load("fuel low.mp3");
-        bingoFuelClip = AudioLoader.Load("bingo fuel.mp3");
+        sampleIntervalSeconds = Plugin.FuelTimeUpdateRate.Value;
     }
 
     public static void OnGaugeInitialized(Aircraft aircraft)
@@ -68,11 +59,6 @@ internal static class FuelWarning
         fuelTimeLabel.text = float.IsInfinity(secondsRemaining)
             ? "(...)"
             : $"({Mathf.FloorToInt(secondsRemaining / 60f)}m)";
-
-        if (secondsRemaining < bingoFuelSeconds)
-            VoiceQueue.Say("bingo fuel", bingoFuelClip, CalloutPriority.Fuel, 0f);
-        else if (secondsRemaining < lowFuelSeconds)
-            VoiceQueue.Say("fuel low", lowFuelClip, CalloutPriority.Fuel, 0f);
     }
 
     private static bool TryCreateLabel(FuelGauge gauge, Text fuelLabel)
@@ -114,15 +100,15 @@ internal static class FuelGaugePatches
     [HarmonyPatch("Initialize")]
     private static void Initialize(Aircraft aircraft)
     {
-        if (Plugin.FuelWarnings.Value && aircraft != null)
-            FuelWarning.OnGaugeInitialized(aircraft);
+        if (Plugin.FuelTimeReadout.Value && aircraft != null)
+            FuelTime.OnGaugeInitialized(aircraft);
     }
 
     [HarmonyPostfix]
     [HarmonyPatch("Refresh")]
     private static void Refresh(FuelGauge __instance, Aircraft ___aircraft, Text ___fuelLabel)
     {
-        if (Plugin.FuelWarnings.Value)
-            FuelWarning.OnGaugeRefreshed(__instance, ___aircraft, ___fuelLabel);
+        if (Plugin.FuelTimeReadout.Value)
+            FuelTime.OnGaugeRefreshed(__instance, ___aircraft, ___fuelLabel);
     }
 }

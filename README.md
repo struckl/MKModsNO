@@ -33,43 +33,13 @@ an airbase icon on the maximized map (normally those clicks only work on
 the spawn screen). Lower the gear and the game draws the native glideslope
 to the chosen runway at any distance.
 
-### Bitching Ratte — voice warning system
+### Fuel time readout
 
-A complete cockpit voice warning system in the style of the F/A-18's
-"Bitching Betty". One voice, one priority queue — callouts never talk over
-each other. Covers:
+Displays the estimated remaining fuel time next to the fuel gauge, calculated
+from the fuel burned between samples so it follows your actual throttle setting.
 
-- **Terrain**: "Pull up" (uses the game's own terrain prediction), "Altitude",
-  "Sink rate", "Roll left/right" when inverted near the ground, and "Gear"
-  when descending low and slow with the gear still up.
-- **Flight envelope**: "Stall" (per-aircraft AoA threshold), "Over G"
-  (per-aircraft G limit), "Overspeed".
-- **Combat**: "Warning" on a hostile radar lock, "Flares low/out" and
-  "Electronic warfare low/out" per countermeasure type.
-- **Systems**: "Engine failure" (replaces the native engine failure audio),
-  "Engine fire", "Damage" on fuel tank hits.
-- **Advisories**: "Gear up/down", "Radar armed/disarmed", "Autopilot" when
-  flight assist is disabled.
-
-Missile and fuel warnings (below) are routed through the same queue.
-Groups can be toggled in the config, and every single callout has its own
-switch under the "Callouts" sections — mute just the ones that annoy you.
-
-### Audible missile warnings
-
-Plays a warning sound when a missile is locked onto the player's plane. The specific
-sound played corresponds to the countermeasure to the type of missile.
-
-- IR: "Flare"
-- ARH, SARH: "Notch"
-- ARAD: "Radar"
-- Optical: "Hide"
-
-### Fuel time and low fuel warning
-
-Displays the remaining fuel time in the HUD, plays a "low fuel" warning sound
-when the fuel is below 7 minutes, and a "bingo fuel" warning sound when the fuel
-is below 3 minutes.
+The matching "fuel low" and "bingo fuel" voice callouts live in
+[Bitching Ratte](https://github.com/struckl/BitchingRatte).
 
 ![Fuel time example](https://github.com/mkualquiera/MKModsNO/blob/main/images/fueltime.png?raw=true)
 
@@ -98,6 +68,18 @@ dotnet build -c Release -p:GameDirectory="C:\path\to\Nuclear Option"
 
 A successful build automatically copies the plugin into
 ``<GameDirectory>/BepInEx/plugins/MKMods``.
+
+## Version 4.0 notes
+
+The whole voice warning system moved out into its own standalone plugin,
+[Bitching Ratte](https://github.com/struckl/BitchingRatte) — terrain, flight
+envelope, combat, systems and advisory callouts, plus the missile countermeasure
+calls and the "fuel low" / "bingo fuel" warnings that shared its priority queue.
+MKMods keeps the fuel *time* readout in the HUD; only the spoken part left.
+
+MKMods now ships no audio assets at all, and the "Warnings" and "Callouts (…)"
+config sections are gone. Install Bitching Ratte alongside it to get the voices
+back.
 
 ## Version 3.0 notes
 
