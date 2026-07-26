@@ -20,8 +20,29 @@ internal static class ApproachAssist
 
     public static void SetAircraft(Aircraft newAircraft)
     {
+        if (aircraft != null)
+            aircraft.onSetGear -= OnSetGear;
         aircraft = newAircraft;
         chosenAirbase = null;
+        if (aircraft != null)
+            aircraft.onSetGear += OnSetGear;
+    }
+
+    /// <summary>Gear down anywhere = intent to land: pick the nearest base, no button needed.</summary>
+    private static void OnSetGear(Aircraft.OnSetGear e)
+    {
+        if (!Plugin.ApproachAssistEnabled.Value || !Plugin.ApproachAutoSelect.Value)
+            return;
+        if (e.gearState != LandingGear.GearState.Extending
+            && e.gearState != LandingGear.GearState.LockedExtended)
+            return;
+        if (chosenAirbase != null || !HasLiveAircraft() || aircraft.NetworkHQ == null
+            || aircraft.radarAlt < 5f)
+            return;
+
+        List<Airbase> bases = GetFriendlyLandingBases();
+        if (bases.Count > 0)
+            Select(bases[0]);
     }
 
     public static void Tick()
@@ -48,6 +69,7 @@ internal static class ApproachAssist
         if (next >= bases.Count)
         {
             chosenAirbase = null;
+            SceneSingleton<DynamicMap>.i?.DeselectAllIcons();
             Report("Approach guidance off");
             return;
         }
@@ -62,7 +84,15 @@ internal static class ApproachAssist
         Airbase.Runway.RunwayUsage? usage = RequestLanding(airbase);
         if (usage.HasValue)
             runway = ", runway " + usage.Value.GetName();
-        Report($"Approach: {airbase.NetworknetworkUniqueName}{runway} — lower gear for glideslope");
+        Report($"Approach: {airbase.SavedAirbase.DisplayName}{runway} — lower gear for glideslope");
+
+        // Highlight the chosen base on the map, same as spawn selection does.
+        DynamicMap map = SceneSingleton<DynamicMap>.i;
+        if (map != null)
+        {
+            map.DeselectAllIcons();
+            map.SelectIcon(airbase);
+        }
     }
 
     private static List<Airbase> GetFriendlyLandingBases()
