@@ -11,7 +11,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "xyz.huestudios.mk.mkmods";
     public const string Name = "MK Mods";
-    public const string Version = "2.1.0";
+    public const string Version = "3.0.0";
 
     internal static new ManualLogSource Logger;
     internal static string AssetsPath;
@@ -31,12 +31,6 @@ public class Plugin : BaseUnityPlugin
 
     // HUD
     internal static ConfigEntry<float> ClimbRateVerticalOffset;
-
-    // Radio chatter
-    internal static ConfigEntry<bool> RadioChatterEnabled;
-    internal static ConfigEntry<float> RadioChatterVolume;
-    internal static ConfigEntry<float> RadioChatterMinPause;
-    internal static ConfigEntry<float> RadioChatterMaxPause;
 
     // Approach assist
     internal static ConfigEntry<bool> ApproachAssistEnabled;
@@ -62,7 +56,6 @@ public class Plugin : BaseUnityPlugin
         MissileVoiceWarning.Initialize();
         FuelWarning.Initialize();
         BitchingRatte.Initialize();
-        RadioChatter.Initialize();
 
         new Harmony(Guid).PatchAll();
         Logger.LogInfo($"{Name} {Version} loaded.");
@@ -71,7 +64,6 @@ public class Plugin : BaseUnityPlugin
     private void Update()
     {
         BitchingRatte.Tick();
-        RadioChatter.Tick();
         ApproachAssist.Tick();
     }
 
@@ -109,19 +101,6 @@ public class Plugin : BaseUnityPlugin
         ClimbRateVerticalOffset = Config.Bind(
             "HUD", "ClimbRateVerticalOffset", 40f,
             "Moves the climb rate (+/- m) readout up by this many pixels (negative moves it down, 0 disables).");
-
-        RadioChatterEnabled = Config.Bind(
-            "Radio Chatter", "Enabled", true,
-            "Play ambient radio chatter in the background while flying.");
-        RadioChatterVolume = Config.Bind(
-            "Radio Chatter", "Volume", 1.2f,
-            "Chatter volume relative to other interface audio (warnings play at 3.0).");
-        RadioChatterMinPause = Config.Bind(
-            "Radio Chatter", "MinPauseSeconds", 12f,
-            "Minimum silence between chatter conversations.");
-        RadioChatterMaxPause = Config.Bind(
-            "Radio Chatter", "MaxPauseSeconds", 45f,
-            "Maximum silence between chatter conversations.");
 
         ApproachAssistEnabled = Config.Bind(
             "Approach Assist", "Enabled", true,

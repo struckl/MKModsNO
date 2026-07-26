@@ -33,15 +33,6 @@ an airbase icon on the maximized map (normally those clicks only work on
 the spawn screen). Lower the gear and the game draws the native glideslope
 to the chosen runway at any distance.
 
-### Radio chatter
-
-Ambient radio chatter while flying — short pilot/controller conversations
-(check-ins, kill calls, landing clearances) with random pauses, so the cockpit
-never feels dead quiet. Every conversation uses a different pilot voice
-talking to a constant controller voice, complete with squelch clicks and
-radio noise; chatter holds off while a warning is speaking. Volume and pause
-range are configurable.
-
 ### Bitching Ratte — voice warning system
 
 A complete cockpit voice warning system in the style of the F/A-18's
@@ -107,6 +98,13 @@ dotnet build -c Release -p:GameDirectory="C:\path\to\Nuclear Option"
 
 A successful build automatically copies the plugin into
 ``<GameDirectory>/BepInEx/plugins/MKMods``.
+
+## Version 3.0 notes
+
+The ambient radio chatter moved out into its own standalone plugin,
+[Ratten Chatter](https://github.com/struckl/RattenChatter), so it can be
+installed without the rest of MKMods. Chatter still keeps out of the way of
+the Bitching Ratte callouts when both plugins are installed.
 
 ## Version 2.0 notes
 
