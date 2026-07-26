@@ -10,7 +10,7 @@ public class Plugin : BaseUnityPlugin
 {
     public const string Guid = "xyz.huestudios.mk.mkmods";
     public const string Name = "MK Mods";
-    public const string Version = "4.0.0";
+    public const string Version = "5.0.0";
 
     internal static new ManualLogSource Logger;
 
@@ -25,11 +25,6 @@ public class Plugin : BaseUnityPlugin
     internal static ConfigEntry<bool> FuelTimeReadout;
     internal static ConfigEntry<float> FuelTimeUpdateRate;
 
-    // Approach assist
-    internal static ConfigEntry<bool> ApproachAssistEnabled;
-    internal static ConfigEntry<bool> ApproachAutoSelect;
-    internal static ConfigEntry<KeyboardShortcut> ApproachSelectKey;
-
     private void Awake()
     {
         Logger = base.Logger;
@@ -39,11 +34,6 @@ public class Plugin : BaseUnityPlugin
 
         new Harmony(Guid).PatchAll();
         Logger.LogInfo($"{Name} {Version} loaded.");
-    }
-
-    private void Update()
-    {
-        ApproachAssist.Tick();
     }
 
     private void BindConfig()
@@ -70,15 +60,5 @@ public class Plugin : BaseUnityPlugin
         FuelTimeUpdateRate = Config.Bind(
             "HUD", "FuelTimeUpdateRate", 10f,
             "Seconds between fuel level samples used to estimate the remaining time.");
-
-        ApproachAssistEnabled = Config.Bind(
-            "Approach Assist", "Enabled", true,
-            "Select a friendly airbase for landing guidance at any range.");
-        ApproachAutoSelect = Config.Bind(
-            "Approach Assist", "AutoSelectOnGearDown", true,
-            "Lowering the gear automatically selects the nearest friendly airbase (no keybind needed).");
-        ApproachSelectKey = Config.Bind(
-            "Approach Assist", "SelectKey", new KeyboardShortcut(UnityEngine.KeyCode.L),
-            "Optional: cycles friendly airbases nearest-first; one press past the last turns guidance off. Also accepts JoystickButton0-19 for HOTAS/controller. Clicking an airbase icon on the maximized map works too.");
     }
 }

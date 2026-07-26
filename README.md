@@ -22,17 +22,6 @@ in a logical way. It's similar to the targeting system of
 Moves the climb rate readout (the "+10 m / -5 m" text) up from its awkwardly
 low default position. Offset is configurable.
 
-### Approach assist
-
-The game only shows its landing glideslope when you happen to fly within
-5 km of a friendly base. Approach assist lets you pick your landing base
-deliberately: press the select key (default `L`) to pick the nearest
-friendly airbase with a runway — press again to cycle further bases,
-one press past the last turns guidance off. In flight you can also click
-an airbase icon on the maximized map (normally those clicks only work on
-the spawn screen). Lower the gear and the game draws the native glideslope
-to the chosen runway at any distance.
-
 ### Fuel time readout
 
 Displays the estimated remaining fuel time next to the fuel gauge, calculated
@@ -68,6 +57,26 @@ dotnet build -c Release -p:GameDirectory="C:\path\to\Nuclear Option"
 
 A successful build automatically copies the plugin into
 ``<GameDirectory>/BepInEx/plugins/MKMods``.
+
+## Related plugins
+
+The features that grew their own personality now live in their own plugins.
+Each installs on its own, and they stay out of each other's way.
+
+- [Bitching Ratte](https://github.com/struckl/BitchingRatte) — the cockpit voice
+  warning system.
+- [Ratten Chatter](https://github.com/struckl/RattenChatter) — ambient radio
+  chatter.
+- [Cleared Ratte](https://github.com/struckl/ClearedRatte) — approach assist.
+
+## Version 5.0 notes
+
+Approach assist moved out into its own standalone plugin,
+[Cleared Ratte](https://github.com/struckl/ClearedRatte).
+
+With it went the last thing MKMods did every frame, so the plugin is now purely
+Harmony patches. What is left is the original trio: target selection, the climb
+rate nudge and the fuel time readout.
 
 ## Version 4.0 notes
 
